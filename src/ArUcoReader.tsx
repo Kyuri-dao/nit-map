@@ -2,11 +2,6 @@ import React, { useRef, useEffect, useState } from "react";
 import Webcam from "react-webcam";
 import { useOpenCv } from "./useOpenCv";
 
-// 型ガード関数を定義
-const isCvLoaded = (cv: any): cv is typeof window.cv => {
-  return cv !== undefined && typeof cv.getBuildInfomation === "function";
-};
-
 const ArUcoReader: React.FC = () => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,7 +9,10 @@ const ArUcoReader: React.FC = () => {
   const [message, setMessage] = useState("Loading OpenCV...");
 
   useEffect(() => {
-    if (!isCvInitialized || !isCvLoaded(window.cv)) return;
+    if (!isCvInitialized) return;
+    
+    console.log("OpenCV initialized, starting ArUco detection");
+    setMessage("OpenCV loaded, waiting for camera...");
 
     const detectArUco = () => {
       if (!webcamRef.current || !canvasRef.current) return;
@@ -23,7 +21,7 @@ const ArUcoReader: React.FC = () => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
 
-      if (!video || !ctx || !isCvLoaded(window.cv)) return; // 型ガードを再適用
+      if (!video || !ctx) return;
 
       // OpenCVで画像を取得
       const src = new window.cv.Mat(video.videoHeight, video.videoWidth, window.cv.CV_8UC4);
