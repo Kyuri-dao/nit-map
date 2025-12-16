@@ -23,38 +23,59 @@ const ArUcoReader: React.FC = () => {
 
       if (!video || !ctx) return;
 
-      // OpenCVで画像を取得
-      const src = new window.cv.Mat(video.videoHeight, video.videoWidth, window.cv.CV_8UC4);
-      const cap = new window.cv.VideoCapture(video);
-
-      cap.read(src);
-
-      // グレースケール変換
-      const gray = new window.cv.Mat();
-      window.cv.cvtColor(src, gray, window.cv.COLOR_RGBA2GRAY);
-
-      // ArUco検出
-      const dictionary = new window.cv.Dictionary(window.cv.DICT_6X6_250);
-      const parameters = new window.cv.DetectorParameters();
-      const markerCorners = new window.cv.MatVector();
-      const markerIds = new window.cv.Mat();
-
-      window.cv.detectMarkers(gray, dictionary, markerCorners, markerIds, parameters);
-
-      // 検出結果を描画
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      if (markerIds.rows > 0) {
-        window.cv.drawDetectedMarkers(src, markerCorners, markerIds);
-        setMessage(`Detected markers: ${markerIds.rows}`);
-      } else {
-        setMessage("No markers detected");
+      // videoがまだ準備できていない場合はスキップ
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        return;
       }
 
-      // メモリ解放
-      src.delete();
-      gray.delete();
-      markerCorners.delete();
-      markerIds.delete();
+      // videoのサイズが取得できない場合はスキップ
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        return;
+      }
+
+      // canvasのサイズをvideoに合わせる
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        console.log(`Canvas size set to: ${canvas.width}x${canvas.height}`);
+      }
+
+      try {
+        // OpenCVで画像を取得
+        const src = new window.cv.Mat(video.videoHeight, video.videoWidth, window.cv.CV_8UC4);
+        const cap = new window.cv.VideoCapture(video);
+
+        cap.read(src);
+
+        // グレースケール変換
+        const gray = new window.cv.Mat();
+        window.cv.cvtColor(src, gray, window.cv.COLOR_RGBA2GRAY);
+
+        // ArUco検出
+        const dictionary = new window.cv.Dictionary(window.cv.DICT_6X6_250);
+        const parameters = new window.cv.DetectorParameters();
+        const markerCorners = new window.cv.MatVector();
+        const markerIds = new window.cv.Mat();
+
+        window.cv.detectMarkers(gray, dictionary, markerCorners, markerIds, parameters);
+
+        // 検出結果を描画
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (markerIds.rows > 0) {
+          window.cv.drawDetectedMarkers(src, markerCorners, markerIds);
+          setMessage(`Detected markers: ${markerIds.rows}`);
+        } else {
+          setMessage("No markers detected");
+        }
+
+        // メモリ解放
+        src.delete();
+        gray.delete();
+        markerCorners.delete();
+        markerIds.delete();
+      } catch (error) {
+        console.error("Error in ArUco detection:", error);
+      }
     };
 
     const interval = setInterval(detectArUco, 100);
