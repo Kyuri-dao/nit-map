@@ -2,6 +2,32 @@ interface OpenCVMat {
     delete(): void;
     rows: number;
     cols: number;
+    data32S: Int32Array;
+    type(): number;
+    channels(): number;
+}
+
+// ArUco関連の型定義
+interface ArucoDictionary {
+    delete?(): void;
+}
+
+interface ArucoDetectorParameters {
+    delete?(): void;
+}
+
+interface ArucoRefineParameters {
+    delete?(): void;
+}
+
+interface ArucoDetector {
+    detectMarkers(image: OpenCVMat, corners: MatVector, ids: OpenCVMat): void;
+    delete(): void;
+}
+
+interface MatVector {
+    delete(): void;
+    size(): number;
 }
 
 interface OpenCV {
@@ -9,7 +35,7 @@ interface OpenCV {
     getBuildInfomation?: () => string; // typo in OpenCV.js
     
     // Mat class
-    Mat: new (...args: any[]) => OpenCVMat;
+    Mat: new (...args: unknown[]) => OpenCVMat;
     
     // Video capture
     VideoCapture: new (video: HTMLVideoElement) => {
@@ -18,33 +44,22 @@ interface OpenCV {
     };
     
     // ArUco detection
-    MatVector: new () => {
-        delete(): void;
-        size(): number;
-    };
-    Dictionary: new (type: number) => {
-        delete(): void;
-    };
-    DetectorParameters: new () => {
-        delete(): void;
-    };
+    MatVector: new () => MatVector;
+    
+    // ArUco classes
+    aruco_Dictionary: new () => ArucoDictionary;
+    aruco_DetectorParameters: new () => ArucoDetectorParameters;
+    aruco_RefineParameters: new (minRepDistance: number, errorCorrectionRate: number, checkAllOrders: boolean) => ArucoRefineParameters;
+    aruco_ArucoDetector: new (dictionary: ArucoDictionary, parameters: ArucoDetectorParameters, refineParameters?: ArucoRefineParameters) => ArucoDetector;
     
     // ArUco functions
-    detectMarkers: (
-        image: OpenCVMat,
-        dictionary: any,
-        corners: any,
-        ids: OpenCVMat,
-        parameters: any
-    ) => void;
-    drawDetectedMarkers: (
-        image: OpenCVMat,
-        corners: any,
-        ids: OpenCVMat
-    ) => void;
+    getPredefinedDictionary: (dictionaryId: number) => ArucoDictionary;
     
     // Color conversion
     cvtColor: (src: OpenCVMat, dst: OpenCVMat, code: number) => void;
+    
+    // Image data conversion
+    matFromImageData: (imageData: ImageData) => OpenCVMat;
     
     // Constants
     COLOR_RGBA2GRAY: number;
@@ -65,6 +80,7 @@ interface OpenCV {
     DICT_7X7_100: number;
     DICT_7X7_250: number;
     DICT_7X7_1000: number;
+    DICT_ARUCO_ORIGINAL: number;
 }
 
 declare interface Window {

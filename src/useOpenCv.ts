@@ -38,13 +38,13 @@ export function useOpenCv(): boolean {
             }
         }, 100);
 
-        // タイムアウト: 10秒経っても読み込めなかったらエラー
+        // タイムアウト: 30秒経っても読み込めなかったらエラー
         const timeout = setTimeout(() => {
             if (!checkOpenCV()) {
-                console.error("Failed to load OpenCV.js after 10 seconds");
+                console.error("Failed to load OpenCV.js after 30 seconds");
                 clearInterval(interval);
             }
-        }, 10000);
+        }, 30000);
 
         return () => {
             clearInterval(interval);
